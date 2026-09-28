@@ -15,7 +15,7 @@ DAGS = Path(__file__).resolve().parent.parent / "dags"
 def dag():
     bag = DagBag(dag_folder=str(DAGS))
     assert bag.import_errors == {}
-    return bag.get_dag("indicadores_br")
+    return bag.dags["indicadores_br"]
 
 
 def test_tasks_e_ordem(dag):
