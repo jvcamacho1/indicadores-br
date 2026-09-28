@@ -1,9 +1,6 @@
 # Backlog de estudo: dbt e Airflow
 
-Melhorias para o `indicadores-br`, pensadas para aprender dbt e Airflow
-implementando. Cada tarefa traz só o **conceito** (termo para pesquisar), o
-**objetivo** e o **critério de aceite**. O caminho até lá é seu.
-
+Melhorias para o `indicadores-br`
 ## Como usar
 
 **Status.** Vocabulário fechado: `TODO`, `FEITO`, `PARCIAL`, `BLOQUEADO`.
