@@ -107,6 +107,11 @@ python -m indicadores site
 Um site montado com dados sintéticos traz uma faixa de aviso, e o
 `scripts/publicar.sh` se recusa a publicá-lo.
 
+## Backlog
+
+Melhorias planejadas, para aprender dbt e Airflow na prática:
+[`docs/backlog.md`](docs/backlog.md).
+
 ## Estrutura
 
 ```
@@ -117,6 +122,7 @@ site/                 painel estático (HTML, CSS, JS com Chart.js), PT/EN
 tests/                pytest + API falsa
 docker/               imagem do Airflow (com o dbt num venv próprio) e init do warehouse
 scripts/publicar.sh   publica build/site na gh-pages
+docs/backlog.md       backlog de melhorias
 ```
 
 ---
