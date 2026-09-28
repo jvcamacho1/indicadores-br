@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+build/
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+logs/
+.pytest_cache/
+.ruff_cache/

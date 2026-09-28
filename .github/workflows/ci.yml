@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    name: Lint e testes
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: {POSTGRES_PASSWORD: postgres}
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env:
+      WAREHOUSE_HOST: localhost
+      WAREHOUSE_USER: postgres
+      WAREHOUSE_PASSWORD: postgres
+      WAREHOUSE_DB: postgres
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check . && ruff format --check .
+      - run: pytest
+
+  dbt:
+    name: Pipeline completo com a API falsa
+    # extração -> dbt build (modelos, testes, unit tests) -> docs -> site,
+    # contra dados sintéticos: prova o pipeline sem depender das APIs reais.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: {POSTGRES_PASSWORD: postgres}
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env:
+      WAREHOUSE_HOST: localhost
+      WAREHOUSE_USER: postgres
+      WAREHOUSE_PASSWORD: postgres
+      WAREHOUSE_DB: postgres
+      BCB_BASE_URL: http://127.0.0.1:8765
+      IBGE_BASE_URL: http://127.0.0.1:8765
+      DADOS_SINTETICOS: "1"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -r requirements.txt -r requirements-dbt.txt
+      - name: API falsa
+        run: |
+          python tests/fake_api.py --porta 8765 &
+          sleep 1
+      - run: echo "ATE=$(date -u +%F)" >> "$GITHUB_ENV"
+      - run: python -m indicadores carregar --desde 2015-01-01 --ate "$ATE"
+      - name: Carga repetida não altera nada
+        run: |
+          python -m indicadores carregar --desde 2024-01-01 --ate "$ATE" 2>&1 | tee carga.log
+          if grep -v "'alteradas': 0" carga.log | grep -q INFO; then
+            echo "a segunda carga alterou linhas: a carga não é idempotente"; exit 1
+          fi
+      - working-directory: dbt
+        run: |
+          dbt source freshness --profiles-dir .
+          dbt build --profiles-dir .
+          dbt docs generate --static --profiles-dir .
+      - run: python -m indicadores site --saida build/site
+      - uses: actions/upload-artifact@v4
+        with: {name: site-sintetico, path: build/site}
+
+  airflow:
+    name: DAG importa no Airflow
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: "3.11", cache: pip}
+      - run: |
+          pip install "apache-airflow==3.3.2" \
+            --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.3.2/constraints-3.11.txt"
+          pip install -r requirements-dev.txt
+      - run: pytest tests/test_dag.py
+        env: {AIRFLOW__CORE__LOAD_EXAMPLES: "false"}

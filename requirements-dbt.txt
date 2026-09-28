@@ -1,0 +1,2 @@
+# O dbt vive num ambiente separado do Airflow: as dependências dos dois brigam.
+dbt-postgres~=1.11

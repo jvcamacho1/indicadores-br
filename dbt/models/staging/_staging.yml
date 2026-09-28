@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: stg_indicadores
+    description: O catálogo de indicadores (seed), com tipos e nomes padronizados.
+    columns:
+      - name: indicador_id
+        data_tests: [unique, not_null]
+      - name: fonte
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["bcb", "ibge"]
+      - name: agregacao_mensal
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["valor", "ultimo", "media"]
+
+  - name: stg_bcb__observacoes
+    description: Observações do SGS (Banco Central), uma por indicador e data.
+    columns:
+      - name: indicador_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_indicadores')
+                field: indicador_id
+
+  - name: stg_ibge__observacoes
+    description: Observações do SIDRA (IBGE). A data é o primeiro dia do mês de referência.
+    columns:
+      - name: indicador_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_indicadores')
+                field: indicador_id

@@ -1,0 +1,7 @@
+indicador_id,fonte,codigo_fonte,nome,nome_en,unidade,periodicidade,agregacao_mensal,descricao,descricao_en
+selic_meta,bcb,432,Selic (meta),Selic (target),% a.a.,diaria,ultimo,"Meta da taxa Selic definida pelo Copom. No mês, vale a última meta vigente.","Selic target rate set by Copom. For each month, the last target in force."
+ipca_mensal,bcb,433,IPCA (variação mensal),IPCA (monthly change),% a.m.,mensal,valor,"Variação mensal do IPCA, o índice oficial de inflação.","Monthly change of IPCA, Brazil's official consumer price index."
+ipca_12m,bcb,13522,IPCA acumulado em 12 meses,IPCA (12-month),%,mensal,valor,"IPCA acumulado nos últimos 12 meses, como publicado pelo Banco Central.","IPCA accumulated over the last 12 months, as published by the Central Bank."
+dolar_venda,bcb,1,Dólar comercial (venda),USD/BRL (sell),R$/US$,diaria,media,"Taxa de câmbio livre do dólar americano, venda. No mês, a média dos dias úteis.","Free-market USD/BRL exchange rate, sell side. For each month, the average of business days."
+ibc_br,bcb,24364,IBC-Br (dessazonalizado),IBC-Br (seasonally adjusted),índice,mensal,valor,"Índice de Atividade Econômica do Banco Central, com ajuste sazonal. Uma prévia mensal do PIB.","Central Bank Economic Activity Index, seasonally adjusted. A monthly proxy for GDP."
+desocupacao,ibge,6381:4099,Taxa de desocupação,Unemployment rate,%,mensal,valor,"Taxa de desocupação da PNAD Contínua, trimestre móvel terminado no mês.","PNAD Contínua unemployment rate, rolling quarter ending in the month."

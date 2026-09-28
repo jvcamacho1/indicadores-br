@@ -1,0 +1,28 @@
+name: indicadores_br
+version: "1.0.0"
+profile: indicadores
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  indicadores_br:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table
+
+seeds:
+  indicadores_br:
+    +schema: staging
+    indicadores:
+      +column_types:
+        codigo_fonte: text

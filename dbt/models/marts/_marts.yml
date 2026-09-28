@@ -1,0 +1,109 @@
+version: 2
+
+models:
+  - name: dim_indicador
+    description: Os indicadores, com fonte, unidade e a regra de agregação mensal.
+    columns:
+      - name: indicador_id
+        data_tests: [unique, not_null]
+
+  - name: dim_calendario
+    description: Um mês por linha, do primeiro ao último mês com dado.
+    columns:
+      - name: mes
+        data_tests: [unique, not_null]
+
+  - name: fct_indicador_mensal
+    description: Fato central, na granularidade indicador x mês. Incremental por `carregado_em`.
+    columns:
+      - name: indicador_mes_id
+        description: Chave da granularidade, "indicador|AAAA-MM".
+        data_tests: [unique, not_null]
+      - name: indicador_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_indicador')
+                field: indicador_id
+      - name: mes
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_calendario')
+                field: mes
+      - name: valor
+        data_tests: [not_null]
+
+  - name: mart_painel_mensal
+    description: >
+      A tabela do painel: um mês por linha, um indicador por coluna, com
+      juros real (Fisher), IPCA de 12 meses recalculado a partir do mensal
+      e a variação em 12 meses do IBC-Br.
+    columns:
+      - name: mes
+        data_tests: [unique, not_null]
+      - name: selic_meta
+        description: Meta Selic vigente no fim do mês (% a.a.).
+        data_tests:
+          - valor_entre: {arguments: {minimo: 0, maximo: 50}}
+      - name: ipca_mensal
+        description: Variação mensal do IPCA (%).
+        data_tests:
+          - valor_entre: {arguments: {minimo: -5, maximo: 5}}
+      - name: ipca_12m
+        description: IPCA acumulado em 12 meses, como publicado pelo BC (%).
+        data_tests:
+          - valor_entre: {arguments: {minimo: -5, maximo: 50}}
+      - name: ipca_12m_calculado
+        description: IPCA de 12 meses recalculado a partir das variações mensais. Existe para reconciliar com `ipca_12m`.
+      - name: juros_real
+        description: Juros real ex-post, (1 + Selic) / (1 + IPCA 12m) - 1 (%).
+        data_tests:
+          - valor_entre: {arguments: {minimo: -20, maximo: 30}}
+      - name: dolar_venda
+        description: Média mensal do dólar comercial, venda (R$/US$).
+        data_tests:
+          - valor_entre: {arguments: {minimo: 1, maximo: 15}}
+      - name: ibc_br
+        description: IBC-Br dessazonalizado (índice).
+        data_tests:
+          - valor_entre: {arguments: {minimo: 50, maximo: 300}}
+      - name: desocupacao
+        description: Taxa de desocupação, trimestre móvel terminado no mês (%).
+        data_tests:
+          - valor_entre: {arguments: {minimo: 0, maximo: 30}}
+
+unit_tests:
+  - name: juros_real_usa_fisher_e_nao_subtracao
+    description: Selic 13,75% e IPCA 5% dão 8,33% de juro real, e não 8,75%.
+    model: mart_painel_mensal
+    given:
+      - input: ref('dim_calendario')
+        rows:
+          - {mes: 2023-06-01}
+      - input: ref('fct_indicador_mensal')
+        rows:
+          - {mes: 2023-06-01, indicador_id: selic_meta, valor: 13.75}
+          - {mes: 2023-06-01, indicador_id: ipca_12m, valor: 5.00}
+    expect:
+      rows:
+        - {mes: 2023-06-01, juros_real: 8.33}
+
+  - name: ipca_12m_calculado_exige_doze_meses
+    description: Com menos de 12 variações mensais, o acumulado fica nulo em vez de sair errado.
+    model: mart_painel_mensal
+    given:
+      - input: ref('dim_calendario')
+        rows:
+          - {mes: 2024-01-01}
+          - {mes: 2024-02-01}
+      - input: ref('fct_indicador_mensal')
+        rows:
+          - {mes: 2024-01-01, indicador_id: ipca_mensal, valor: 0.42}
+          - {mes: 2024-02-01, indicador_id: ipca_mensal, valor: 0.83}
+    expect:
+      rows:
+        - {mes: 2024-01-01, ipca_12m_calculado: null}
+        - {mes: 2024-02-01, ipca_12m_calculado: null}

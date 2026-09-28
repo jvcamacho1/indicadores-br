@@ -1,0 +1,52 @@
+name: Publicar o painel
+
+# A vitrine online. Faz o mesmo que o pipeline local (extração completa,
+# dbt, docs e site), mas contra as APIs reais, e publica na branch gh-pages.
+# O Airflow continua sendo o orquestrador do projeto; isto só mantém o site
+# atualizado sem depender de uma máquina ligada.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 12 16 * *"   # dia 16, depois da divulgação do IPCA
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: {POSTGRES_PASSWORD: postgres}
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env:
+      WAREHOUSE_HOST: localhost
+      WAREHOUSE_USER: postgres
+      WAREHOUSE_PASSWORD: postgres
+      WAREHOUSE_DB: postgres
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -r requirements.txt -r requirements-dbt.txt
+      - run: python -m indicadores carregar --desde 2015-01-01
+      - working-directory: dbt
+        run: |
+          dbt source freshness --profiles-dir .
+          dbt build --profiles-dir .
+          dbt docs generate --static --profiles-dir .
+      - run: python -m indicadores site --saida build/site
+      - uses: actions/upload-artifact@v4
+        with: {name: site, path: build/site}
+      - name: Publicar na gh-pages
+        env:
+          PUBLICAR_REMOTE: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: scripts/publicar.sh build/site

@@ -1,0 +1,22 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Dados como chegam das APIs, gravados pela extração (pacote `indicadores`).
+    schema: raw
+    tables:
+      - name: observacoes
+        description: Um valor por indicador e data. Chave natural (indicador_id, data), com upsert.
+        columns:
+          - name: indicador_id
+            data_tests: [not_null]
+          - name: data
+            data_tests: [not_null]
+          - name: valor
+            data_tests: [not_null]
+      - name: cargas
+        description: Uma linha por execução da extração. É por ela que se mede se o pipeline está vivo.
+        loaded_at_field: executado_em
+        freshness:
+          warn_after: {count: 35, period: day}
+          error_after: {count: 70, period: day}

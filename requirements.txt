@@ -1,0 +1,3 @@
+# Extração e carga (o que roda dentro das tasks do Airflow)
+requests>=2.31
+psycopg2-binary>=2.9
