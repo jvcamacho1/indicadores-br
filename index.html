@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-title-en="Brazil economic indicators">Indicadores econômicos do Brasil</title>
+<meta name="description" content="Selic, IPCA, juros real, dólar, IBC-Br e desemprego, atualizados por um pipeline Airflow + dbt. Brazil economic indicators.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="topbar"><div class="wrap">
+  <a class="brand" href="#" data-i18n="marca">Indicadores BR</a>
+  <div class="controls">
+    <div class="seg" id="idioma" role="group" aria-label="Idioma / Language">
+      <button type="button" data-lang="pt" aria-pressed="true">PT</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <button type="button" class="btn-icon" id="tema" aria-label="Tema / Theme">◐</button>
+  </div>
+</div></div>
+
+<main class="wrap">
+  <header class="hero">
+    <h1 data-i18n="titulo">Indicadores econômicos do Brasil</h1>
+    <p class="lead" data-i18n="lead">Juros, inflação, câmbio, atividade e desemprego num lugar só, a partir das APIs públicas do Banco Central e do IBGE. Os dados passam por um pipeline de engenharia de dados com Airflow e dbt, descrito no fim da página.</p>
+    <div class="meta"><span id="meta-dados"></span><span id="meta-gerado"></span></div>
+    <p class="aviso" id="aviso-sintetico" hidden data-i18n="sintetico">Atenção: esta versão foi gerada com dados sintéticos de teste, e não com os dados reais.</p>
+  </header>
+
+  <section aria-labelledby="t-ultimos">
+    <h2 id="t-ultimos" data-i18n="ultimos">Último valor de cada indicador</h2>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section aria-labelledby="t-juros">
+    <div class="filtros">
+      <span class="rotulo" data-i18n="periodo">Período</span>
+      <div class="seg" id="periodo" role="group">
+        <button type="button" data-anos="5" aria-pressed="false" data-i18n="p5">5 anos</button>
+        <button type="button" data-anos="10" aria-pressed="true" data-i18n="p10">10 anos</button>
+        <button type="button" data-anos="0" aria-pressed="false" data-i18n="ptudo">Tudo</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2 id="t-juros" data-i18n="g.juros">Juros e inflação</h2>
+      <p class="sub" data-i18n="g.juros.sub">Meta Selic, IPCA acumulado em 12 meses e o juro real que resulta deles (% ao ano).</p>
+      <div class="chart"><canvas id="c-juros" role="img" aria-label="Selic, IPCA 12 meses e juros real"></canvas></div>
+    </div>
+    <div class="grade">
+      <div class="card">
+        <h3 data-i18n="g.dolar">Dólar comercial</h3>
+        <p class="sub" data-i18n="g.dolar.sub">Média mensal, R$ por US$</p>
+        <div class="chart pequeno"><canvas id="c-dolar" role="img" aria-label="Dólar"></canvas></div>
+      </div>
+      <div class="card">
+        <h3 data-i18n="g.ibc">Atividade econômica</h3>
+        <p class="sub" data-i18n="g.ibc.sub">IBC-Br, variação em 12 meses (%)</p>
+        <div class="chart pequeno"><canvas id="c-ibc" role="img" aria-label="IBC-Br"></canvas></div>
+      </div>
+      <div class="card">
+        <h3 data-i18n="g.deso">Desemprego</h3>
+        <p class="sub" data-i18n="g.deso.sub">Taxa de desocupação, trimestre móvel (%)</p>
+        <div class="chart pequeno"><canvas id="c-deso" role="img" aria-label="Desocupação"></canvas></div>
+      </div>
+    </div>
+    <details>
+      <summary data-i18n="tabela">Ver os dados em tabela</summary>
+      <div class="tabela"><table id="tabela"></table></div>
+    </details>
+  </section>
+
+  <section aria-labelledby="t-como">
+    <h2 id="t-como" data-i18n="como">Como funciona</h2>
+    <p class="lead" data-i18n="como.lead">Um pipeline ELT que roda localmente com Docker e publica só este site estático. O código é aberto.</p>
+    <div class="card arq">
+      <svg viewBox="0 0 980 190" role="img" aria-label="APIs → Airflow → Postgres raw → dbt staging, intermediate e marts → site estático">
+        <defs><marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted);stroke:none"/></marker></defs>
+        <g><rect x="4" y="30" width="130" height="56" rx="10"/><text x="69" y="54" text-anchor="middle">BCB · SGS</text><text class="sub" x="69" y="72" text-anchor="middle" data-i18n="arq.bcb">5 séries</text></g>
+        <g><rect x="4" y="104" width="130" height="56" rx="10"/><text x="69" y="128" text-anchor="middle">IBGE · SIDRA</text><text class="sub" x="69" y="146" text-anchor="middle">PNAD Contínua</text></g>
+        <g class="hl"><rect x="176" y="62" width="150" height="66" rx="10"/><text x="251" y="88" text-anchor="middle">Airflow</text><text class="sub" x="251" y="106" text-anchor="middle" data-i18n="arq.af">mensal · retries · backfill</text></g>
+        <g><rect x="368" y="62" width="130" height="66" rx="10"/><text x="433" y="88" text-anchor="middle">Postgres · raw</text><text class="sub" x="433" y="106" text-anchor="middle" data-i18n="arq.raw">upsert idempotente</text></g>
+        <g class="hl"><rect x="540" y="30" width="250" height="130" rx="10"/><text x="665" y="54" text-anchor="middle">dbt</text>
+          <text class="sub" x="665" y="80" text-anchor="middle">staging → intermediate → marts</text>
+          <text class="sub" x="665" y="100" text-anchor="middle" data-i18n="arq.dbt1">fct incremental · dimensões</text>
+          <text class="sub" x="665" y="120" text-anchor="middle" data-i18n="arq.dbt2">testes · unit tests · freshness</text>
+          <text class="sub" x="665" y="140" text-anchor="middle" data-i18n="arq.dbt3">docs com linhagem</text></g>
+        <g><rect x="832" y="62" width="144" height="66" rx="10"/><text x="904" y="88" text-anchor="middle" data-i18n="arq.site">Este site</text><text class="sub" x="904" y="106" text-anchor="middle">GitHub Pages</text></g>
+        <path d="M134,58 C156,58 156,86 172,90" marker-end="url(#seta)"/><path d="M134,132 C156,132 156,104 172,100" marker-end="url(#seta)"/>
+        <path d="M326,95 H364" marker-end="url(#seta)"/><path d="M498,95 H536" marker-end="url(#seta)"/><path d="M790,95 H828" marker-end="url(#seta)"/>
+      </svg>
+    </div>
+    <div class="lista" style="margin-top:12px">
+      <div class="card"><h3 data-i18n="c1.t">Orquestração</h3><p data-i18n="c1">DAG mensal com <code>catchup</code>: o backfill desde 2015 é um comando. Uma task por indicador (dynamic task mapping), retries com backoff exponencial e uma janela de 3 meses para trás em cada execução, porque o IPCA sai no mês seguinte e as séries são revisadas.</p></div>
+      <div class="card"><h3 data-i18n="c2.t">Carga idempotente</h3><p data-i18n="c2">Upsert por (indicador, data) no schema <code>raw</code>. Reexecutar não duplica, e uma revisão da fonte só muda o que mudou. Cada execução fica registrada em <code>raw.cargas</code>, que alimenta o <code>source freshness</code>.</p></div>
+      <div class="card"><h3 data-i18n="c3.t">Modelagem</h3><p data-i18n="c3">Staging por fonte, um intermediate que leva tudo para a granularidade mensal com a regra de agregação do catálogo, e marts com <code>fct_indicador_mensal</code> incremental, <code>dim_indicador</code>, <code>dim_calendario</code> e o mart do painel.</p></div>
+      <div class="card"><h3 data-i18n="c4.t">Qualidade</h3><p data-i18n="c4">Testes de chave, relacionamento e faixa plausível; um teste que reconcilia o IPCA de 12 meses publicado com o acumulado das variações mensais; e testes unitários do dbt para o juro real (equação de Fisher).</p></div>
+    </div>
+    <div class="links">
+      <a href="dbt-docs/index.html" data-i18n="l.docs">Documentação e linhagem (dbt docs)</a>
+      <a href="https://github.com/jvcamacho1/indicadores-br" data-i18n="l.repo">Código no GitHub</a>
+      <a href="https://jvcamacho1.github.io" data-i18n="l.port">Portfólio</a>
+    </div>
+  </section>
+</main>
+<footer><div class="wrap" data-i18n="rodape">Fontes: Banco Central do Brasil (SGS) e IBGE (SIDRA). Os dados são públicos; este site não tem vínculo com as instituições. Feito por José Camacho.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js" integrity="sha384-G436+Z2nlA8+PNoeRvWdxKbvOf8E/y+lYxqht2iBwNHTQDV5CJr3+AGVj8fGZi5t" crossorigin="anonymous"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
