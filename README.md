@@ -5,8 +5,8 @@ juros real, dólar, IBC-Br e desemprego, direto das APIs públicas do Banco
 Central (SGS) e do IBGE (SIDRA), modelados em camadas e publicados como um
 painel estático.
 
-**Painel:** https://jvcamacho1.github.io/indicadores-br/ ·
-**Documentação e linhagem (dbt docs):** https://jvcamacho1.github.io/indicadores-br/dbt-docs/
+**Painel:** https://jvcamacho.dev/indicadores-br/ ·
+**Documentação e linhagem (dbt docs):** https://jvcamacho.dev/indicadores-br/dbt-docs/
 
 > *EN: An ELT pipeline for Brazilian economic indicators (Central Bank and
 > IBGE public APIs), orchestrated by Airflow, modeled with dbt on Postgres,
@@ -127,5 +127,5 @@ docs/backlog.md       backlog de melhorias
 
 ---
 
-Feito por **José Camacho** · [Portfólio](https://jvcamacho1.github.io) ·
+Feito por **José Camacho** · [Portfólio](https://jvcamacho.dev) ·
 [LinkedIn](https://www.linkedin.com/in/jvcamacho/)
